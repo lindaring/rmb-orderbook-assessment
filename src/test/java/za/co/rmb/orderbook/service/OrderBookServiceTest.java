@@ -52,4 +52,40 @@ public class OrderBookServiceTest {
       previousKey = key;
     }
   }
+
+  @Test
+  public void BUY_ORDER_MAP_IN_DESCENDING_ORDER_AFTER_FIRST_ENTRY_REMOVED_TEST() {
+    Map<Integer, Set<Order>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
+
+    Integer firstKey = buyOrdersMap.keySet().stream().findFirst().orElse(null);
+    Assert.assertNotNull(firstKey);
+
+    buyOrdersMap.remove(firstKey);
+
+    Integer previousKey = null;
+    for (int key: buyOrdersMap.keySet()) {
+      if (previousKey != null) {
+        Assert.assertTrue(key < previousKey);
+      }
+      previousKey = key;
+    }
+  }
+
+  @Test
+  public void SELL_ORDER_MAP_IN_ASCENDING_ORDER_AFTER_FIRST_ENTRY_REMOVED_TEST() {
+    Map<Integer, Set<Order>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
+
+    Integer firstKey = sellOrdersMap.keySet().stream().findFirst().orElse(null);
+    Assert.assertNotNull(firstKey);
+
+    sellOrdersMap.remove(firstKey);
+
+    Integer previousKey = null;
+    for (int key: sellOrdersMap.keySet()) {
+      if (previousKey != null) {
+        Assert.assertTrue(key > previousKey);
+      }
+      previousKey = key;
+    }
+  }
 }
