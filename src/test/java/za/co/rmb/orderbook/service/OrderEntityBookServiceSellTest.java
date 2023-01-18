@@ -51,7 +51,8 @@ public class OrderEntityBookServiceSellTest {
     Map<Integer, Set<OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
     int initialMapSize = sellOrdersMap.size();
 
-    OrderEntity newSellOrder = new OrderEntity(114L, 31, 44, Side.SELL, LocalTime.of(20, 2, 24));
+    OrderEntity newSellOrder = new OrderEntity(OrderRepository.nextSequence(), 31, 44, Side.SELL,
+        LocalTime.of(20, 2, 24));
     orderBookService.addOrder(Side.SELL, newSellOrder);
     int newMapSize = sellOrdersMap.size();
 
