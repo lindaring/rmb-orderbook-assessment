@@ -1,7 +1,7 @@
 package za.co.rmb.orderbook.service;
 
 import za.co.rmb.orderbook.enumerator.Side;
-import za.co.rmb.orderbook.model.Order;
+import za.co.rmb.orderbook.entity.OrderEntity;
 import za.co.rmb.orderbook.model.OrderBook;
 import za.co.rmb.orderbook.repository.OrderRepository;
 
@@ -18,7 +18,7 @@ public class OrderBookService {
 
   public void init() {
     // Note comment in the getOrdersFromDatabase method
-    Set<Order> ordersFromDatabase = orderRepository.getOrdersFromDatabase();
+    Set<OrderEntity> ordersFromDatabase = orderRepository.getOrdersFromDatabase();
 
     /*
       1. Using a Map inorder to group orders per price level (as illustrated in the example limit order book table).
@@ -26,39 +26,63 @@ public class OrderBookService {
          and buy side maintains descending order based on price level.
       3. Basic operation (containsKey, get, put and remove) at log(n) time cost.
     */
-    Map<Integer, Set<Order>> sellOrderMap = new TreeMap<>();
-    Map<Integer, Set<Order>> buyOrderMap = new TreeMap<>(Collections.reverseOrder());
+    Map<Integer, Set<OrderEntity>> sellOrderMap = new TreeMap<>();
+    Map<Integer, Set<OrderEntity>> buyOrderMap = new TreeMap<>(Collections.reverseOrder());
 
     // Using streams for filter BUY / SELL because java can perform both operations in parallel, therefore improving performance
     if (ordersFromDatabase != null) {
       ordersFromDatabase.stream().filter(order -> order != null && order.side() == Side.BUY)
           .forEach(order -> {
-            Set<Order> buyOrderQueue = buyOrderMap.get(order.price());
-            if (buyOrderQueue == null) {
+            Set<OrderEntity> buyOrderSet = buyOrderMap.get(order.price());
+            if (buyOrderSet == null) {
               /*
                 Using TreeSet because we need to maintain ascending order in terms of time. Not using PriorityQueue because
                 It only guarantees min/max value at the top but does not necessarily maintain ascending order.
                 TreeSet provides guaranteed log(n) time cost for the basic operations (add, remove and contains).
               */
-              buyOrderQueue = new TreeSet<>();
+              buyOrderSet = new TreeSet<>();
             }
-            buyOrderQueue.add(order);
-            buyOrderMap.put(order.price(), buyOrderQueue);
+            buyOrderSet.add(order);
+            buyOrderMap.put(order.price(), buyOrderSet);
           });
 
       ordersFromDatabase.stream().filter(order -> order != null && order.side() == Side.SELL)
           .forEach(order -> {
-            Set<Order> sellOrderQueue = sellOrderMap.get(order.price());
-            if (sellOrderQueue == null) {
-              // Above comment applies...
-              sellOrderQueue = new TreeSet<>();
+            Set<OrderEntity> sellOrderSet = sellOrderMap.get(order.price());
+            if (sellOrderSet == null) {
+              // See line 38-42
+              sellOrderSet = new TreeSet<>();
             }
-            sellOrderQueue.add(order);
-            sellOrderMap.put(order.price(), sellOrderQueue);
+            sellOrderSet.add(order);
+            sellOrderMap.put(order.price(), sellOrderSet);
           });
     }
 
     this.orderBook = new OrderBook(buyOrderMap, sellOrderMap);
+  }
+
+  // TODO: Work in progress...for part 2
+  public void addOrder(Side side, OrderEntity order) {
+    if (this.orderBook != null) {
+      if (side == Side.BUY && this.orderBook.buyOrdersMap() != null) {
+        Set<OrderEntity> buyOrderSetEntity = this.orderBook.buyOrdersMap().get(order.price());
+        if (buyOrderSetEntity == null) {
+          // See line 38-42
+          buyOrderSetEntity = new TreeSet<>();
+        }
+        buyOrderSetEntity.add(order);
+        this.orderBook.buyOrdersMap().put(order.price(), buyOrderSetEntity);
+      }
+      else if (side == Side.SELL && this.orderBook.sellOrdersMap() != null) {
+        Set<OrderEntity> sellOrderSet = this.orderBook.sellOrdersMap().get(order.price());
+        if (sellOrderSet == null) {
+          // See line 38-42
+          sellOrderSet = new TreeSet<>();
+        }
+        sellOrderSet.add(order);
+        this.orderBook.sellOrdersMap().put(order.price(), sellOrderSet);
+      }
+    }
   }
 
   public OrderBook getOrderBook() {
