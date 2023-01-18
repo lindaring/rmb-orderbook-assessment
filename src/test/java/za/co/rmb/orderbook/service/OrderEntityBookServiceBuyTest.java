@@ -32,6 +32,7 @@ public class OrderEntityBookServiceBuyTest {
     Assert.assertNotNull(buyOrdersMap);
 
     verifyDescendingOrder(buyOrdersMap);
+    printLimitOrderBookBidSide(buyOrdersMap);
   }
 
   @Test
@@ -44,6 +45,7 @@ public class OrderEntityBookServiceBuyTest {
     buyOrdersMap.remove(firstKey);
 
     verifyDescendingOrder(buyOrdersMap);
+    printLimitOrderBookBidSide(buyOrdersMap);
   }
 
   @Test
@@ -60,6 +62,7 @@ public class OrderEntityBookServiceBuyTest {
     Assert.assertTrue(sizeIncreased);
 
     verifyDescendingOrder(buyOrdersMap);
+    printLimitOrderBookBidSide(buyOrdersMap);
   }
 
   private static void verifyDescendingOrder(Map<Integer, Set<OrderEntity>> buyOrdersMap) {
@@ -69,6 +72,19 @@ public class OrderEntityBookServiceBuyTest {
         Assert.assertTrue(key < previousKey);
       }
       previousKey = key;
+    }
+  }
+
+  private void printLimitOrderBookBidSide(Map<Integer, Set<OrderEntity>> buyOrdersMap) {
+    for (Integer key: buyOrdersMap.keySet()) {
+      System.out.printf("Bid Level Price: %d\t", key);
+      Set<OrderEntity> orderEntities = buyOrdersMap.get(key);
+      int count = 0;
+      for (OrderEntity order: orderEntities) {
+        System.out.printf("|\tBid Order Qty %d: %d\t", count, order.quantity());
+        count++;
+      }
+      System.out.println();
     }
   }
 }

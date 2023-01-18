@@ -87,6 +87,16 @@ public class OrderBookService {
     }
   }
 
+  // TODO: Work in progress...for part 2
+  public void modifyOrder(long id, Side side, int quantity) {
+
+  }
+
+  // TODO: Work in progress...for part 2
+  public void cancelOrder(long id, Side side) {
+
+  }
+
   public OrderBook getOrderBook() {
     return orderBook;
   }

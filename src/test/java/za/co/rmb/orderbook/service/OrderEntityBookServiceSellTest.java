@@ -32,6 +32,7 @@ public class OrderEntityBookServiceSellTest {
     Assert.assertNotNull(sellOrdersMap);
 
     verifyAscendingOrder(sellOrdersMap);
+    printLimitOrderBookAskSide(sellOrdersMap);
   }
 
   @Test
@@ -44,6 +45,7 @@ public class OrderEntityBookServiceSellTest {
     sellOrdersMap.remove(firstKey);
 
     verifyAscendingOrder(sellOrdersMap);
+    printLimitOrderBookAskSide(sellOrdersMap);
   }
 
   @Test
@@ -60,6 +62,7 @@ public class OrderEntityBookServiceSellTest {
     Assert.assertTrue(sizeIncreased);
 
     verifyAscendingOrder(sellOrdersMap);
+    printLimitOrderBookAskSide(sellOrdersMap);
   }
 
   private void verifyAscendingOrder(Map<Integer, Set<OrderEntity>> sellOrdersMap) {
@@ -69,6 +72,19 @@ public class OrderEntityBookServiceSellTest {
         Assert.assertTrue(key > previousKey);
       }
       previousKey = key;
+    }
+  }
+
+  private void printLimitOrderBookAskSide(Map<Integer, Set<OrderEntity>> sellOrdersMap) {
+    for (Integer key: sellOrdersMap.keySet()) {
+      System.out.printf("Ask Level Price: %d\t", key);
+      Set<OrderEntity> orderEntities = sellOrdersMap.get(key);
+      int count = 0;
+      for (OrderEntity order: orderEntities) {
+        System.out.printf("|\tAsk Order Qty %d: %d\t", count, order.quantity());
+        count++;
+      }
+      System.out.println();
     }
   }
 
