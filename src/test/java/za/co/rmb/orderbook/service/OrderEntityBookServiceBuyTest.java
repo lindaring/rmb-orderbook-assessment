@@ -13,11 +13,12 @@ import java.util.Map;
 
 public class OrderEntityBookServiceBuyTest {
 
+  private OrderRepository orderRepository;
   private OrderBookService orderBookService;
 
   @Before
   public void init() {
-    OrderRepository orderRepository = new OrderRepository();
+    orderRepository = new OrderRepository();
     orderBookService = new OrderBookService(orderRepository);
     orderBookService.init();
     OrderBook orderBook = orderBookService.getOrderBook();
@@ -48,11 +49,23 @@ public class OrderEntityBookServiceBuyTest {
   }
 
   @Test
+  public void BUY_ORDER_MAP_CANCEL_ORDER_TEST() {
+    int initialMapSize = orderBookService.getOrderBook().buyOrdersMap().size();
+
+    orderBookService.cancelOrder(103L, Side.BUY);
+    orderBookService.cancelOrder(105L, Side.BUY);
+    int newMapSize = orderBookService.getOrderBook().buyOrdersMap().size();
+
+    boolean sizeDecreased = initialMapSize - newMapSize == 1;
+    Assert.assertTrue(sizeDecreased);
+  }
+
+  @Test
   public void BUY_ORDER_MAP_INCREASED_AND_IN_DESCENDING_ORDER_AFTER_NEW_ENTRY_ADDED_TEST() {
     Map<Integer, Map<Long, OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
     int initialMapSize = buyOrdersMap.size();
 
-    OrderEntity newBuyOrder = new OrderEntity(OrderRepository.nextSequence(), 35, 1, Side.BUY,
+    OrderEntity newBuyOrder = new OrderEntity(orderRepository.nextSequence(), 11, 1, Side.BUY,
         LocalTime.of(1, 39, 45));
     orderBookService.addOrder(Side.BUY, newBuyOrder);
     int newMapSize = buyOrdersMap.size();

@@ -12,10 +12,14 @@ import java.util.Set;
  */
 public class OrderRepository {
 
-  private static long idSequence = 100L;
+  private long idSequence;
+
+  public OrderRepository() {
+    this.idSequence = 100L;
+  }
 
   // Simulating database primary key generation
-  public static long nextSequence() {
+  public long nextSequence() {
     return idSequence++;
   }
 
@@ -25,21 +29,20 @@ public class OrderRepository {
     Set<OrderEntity> ordersFromDatabase = new HashSet<>();
 
     // Buys orders
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 33, 10, Side.BUY, LocalTime.of(12, 3,18)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 33, 5, Side.BUY, LocalTime.of(11, 30,1)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 37, 7, Side.BUY, LocalTime.of(12, 0,22)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 40, 12, Side.BUY, LocalTime.of(13, 50,45)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 37, 14, Side.BUY, LocalTime.of(13, 24,23)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 37, 9, Side.BUY, LocalTime.of(13, 24,23)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 9, 40, Side.BUY, LocalTime.of(12, 3,18)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 7, 50, Side.BUY, LocalTime.of(11, 30,1)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 9, 20, Side.BUY, LocalTime.of(12, 0,22)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 8, 30, Side.BUY, LocalTime.of(13, 50,45)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 7, 50, Side.BUY, LocalTime.of(13, 24,23)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 8, 20, Side.BUY, LocalTime.of(13, 24,23)));
 
     // Sell orders
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 30, 11, Side.SELL, LocalTime.of(15, 5,11)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 30, 6, Side.SELL, LocalTime.of(9, 31,59)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 35, 9, Side.SELL, LocalTime.of(10, 14,16)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 35, 11, Side.SELL, LocalTime.of(12, 44,36)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 29, 8, Side.SELL, LocalTime.of(14, 16,46)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 30, 10, Side.SELL, LocalTime.of(10, 33,21)));
-    ordersFromDatabase.add(new OrderEntity(nextSequence(), 30, 7, Side.SELL, LocalTime.of(10, 33,21)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 11, 50, Side.SELL, LocalTime.of(15, 5,11)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 11, 40, Side.SELL, LocalTime.of(9, 31,59)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 12, 20, Side.SELL, LocalTime.of(10, 14,16)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 10, 5, Side.SELL, LocalTime.of(14, 16,46)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 12, 10, Side.SELL, LocalTime.of(10, 33,21)));
+    ordersFromDatabase.add(new OrderEntity(nextSequence(), 10, 100, Side.SELL, LocalTime.of(10, 33,21)));
     
     return ordersFromDatabase;
   }

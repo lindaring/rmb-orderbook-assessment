@@ -88,9 +88,25 @@ public class OrderBookService {
   public void modifyOrder(long id, Side side, int quantity) {
   }
 
-  // TODO: Work in progress...for part 2
   public void cancelOrder(long id, Side side) {
+    if (this.orderBook == null) {
+      return;
+    }
 
+    Map<Integer, Map<Long, OrderEntity>> orderBookSide = (side == Side.BUY) ?
+        this.orderBook.buyOrdersMap() :
+        this.orderBook.sellOrdersMap();
+
+    for (Integer priceKey: orderBookSide.keySet()) {
+      Map<Long, OrderEntity> priceValueMap = orderBookSide.get(priceKey);
+      if (priceValueMap.containsKey(id)) {
+        priceValueMap.remove(id);
+        if (priceValueMap.isEmpty()) {
+          orderBookSide.remove(priceKey);
+        }
+        return;
+      }
+    }
   }
 
   public OrderBook getOrderBook() {
