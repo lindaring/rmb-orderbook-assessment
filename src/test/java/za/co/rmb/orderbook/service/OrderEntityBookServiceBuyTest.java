@@ -10,7 +10,6 @@ import za.co.rmb.orderbook.repository.OrderRepository;
 
 import java.time.LocalTime;
 import java.util.Map;
-import java.util.Set;
 
 public class OrderEntityBookServiceBuyTest {
 
@@ -28,7 +27,7 @@ public class OrderEntityBookServiceBuyTest {
 
   @Test
   public void BUY_ORDER_MAP_IN_DESCENDING_ORDER_TEST() {
-    Map<Integer, Set<OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
+    Map<Integer, Map<Long, OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
     Assert.assertNotNull(buyOrdersMap);
 
     verifyDescendingOrder(buyOrdersMap);
@@ -37,7 +36,7 @@ public class OrderEntityBookServiceBuyTest {
 
   @Test
   public void BUY_ORDER_MAP_IN_DESCENDING_ORDER_AFTER_FIRST_ENTRY_REMOVED_TEST() {
-    Map<Integer, Set<OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
+    Map<Integer, Map<Long, OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
 
     Integer firstKey = buyOrdersMap.keySet().stream().findFirst().orElse(null);
     Assert.assertNotNull(firstKey);
@@ -50,7 +49,7 @@ public class OrderEntityBookServiceBuyTest {
 
   @Test
   public void BUY_ORDER_MAP_INCREASED_AND_IN_DESCENDING_ORDER_AFTER_NEW_ENTRY_ADDED_TEST() {
-    Map<Integer, Set<OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
+    Map<Integer, Map<Long, OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
     int initialMapSize = buyOrdersMap.size();
 
     OrderEntity newBuyOrder = new OrderEntity(OrderRepository.nextSequence(), 35, 1, Side.BUY,
@@ -65,7 +64,7 @@ public class OrderEntityBookServiceBuyTest {
     printLimitOrderBookBidSide(buyOrdersMap);
   }
 
-  private static void verifyDescendingOrder(Map<Integer, Set<OrderEntity>> buyOrdersMap) {
+  private void verifyDescendingOrder(Map<Integer, Map<Long, OrderEntity>> buyOrdersMap) {
     Integer previousKey = null;
     for (int key: buyOrdersMap.keySet()) {
       if (previousKey != null) {
@@ -75,12 +74,12 @@ public class OrderEntityBookServiceBuyTest {
     }
   }
 
-  private void printLimitOrderBookBidSide(Map<Integer, Set<OrderEntity>> buyOrdersMap) {
+  private void printLimitOrderBookBidSide(Map<Integer, Map<Long, OrderEntity>> buyOrdersMap) {
     for (Integer key: buyOrdersMap.keySet()) {
       System.out.printf("Bid Level Price: %d\t", key);
-      Set<OrderEntity> orderEntities = buyOrdersMap.get(key);
+      Map<Long, OrderEntity> orderEntities = buyOrdersMap.get(key);
       int count = 0;
-      for (OrderEntity order: orderEntities) {
+      for (OrderEntity order: orderEntities.values()) {
         System.out.printf("|\tBid Order Qty %d: %d\t", count, order.quantity());
         count++;
       }
