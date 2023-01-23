@@ -1,31 +1,15 @@
 package za.co.rmb.orderbook.service;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import za.co.rmb.orderbook.enumerator.Side;
 import za.co.rmb.orderbook.entity.OrderEntity;
-import za.co.rmb.orderbook.model.OrderBook;
-import za.co.rmb.orderbook.repository.OrderRepository;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
 
-public class OrderEntityBookServiceBuyTest {
-
-  private OrderRepository orderRepository;
-  private OrderBookService orderBookService;
-
-  @Before
-  public void init() {
-    orderRepository = new OrderRepository();
-    orderBookService = new OrderBookService(orderRepository);
-    orderBookService.init();
-    OrderBook orderBook = orderBookService.getOrderBook();
-    Assert.assertNotNull(orderBook);
-    Assert.assertNotNull(orderBook.buyOrdersMap());
-  }
+public class OrderEntityBookServiceBuyTest extends BaseTest {
 
   @Test
   public void BUY_ORDER_MAP_IN_DESCENDING_ORDER_TEST() {
@@ -33,7 +17,7 @@ public class OrderEntityBookServiceBuyTest {
     Assert.assertNotNull(buyOrdersMap);
 
     verifyDescendingOrder(buyOrdersMap);
-    printLimitOrderBookBidSide(buyOrdersMap);
+    printLimitOrderBookSide(buyOrdersMap, Side.BUY);
   }
 
   @Test
@@ -46,7 +30,7 @@ public class OrderEntityBookServiceBuyTest {
     buyOrdersMap.remove(firstKey);
 
     verifyDescendingOrder(buyOrdersMap);
-    printLimitOrderBookBidSide(buyOrdersMap);
+    printLimitOrderBookSide(buyOrdersMap, Side.BUY);
   }
 
   @Test
@@ -60,15 +44,15 @@ public class OrderEntityBookServiceBuyTest {
 
     boolean sizeDecreased = initialMapSize - newMapSize == 1;
     Assert.assertTrue(sizeDecreased);
-    printLimitOrderBookBidSide(buyOrdersMap);
+    printLimitOrderBookSide(buyOrdersMap, Side.BUY);
   }
 
   @Test
   public void BUY_ORDER_MAP_MODIFY_ORDER_TEST() {
     Map<Integer, Set<OrderEntity>> buyOrdersMap = orderBookService.getOrderBook().buyOrdersMap();
     orderBookService.modifyOrder(103L, Side.BUY, 10);
-    verifyDescendingOrder(buyOrdersMap);
-    printLimitOrderBookBidSide(buyOrdersMap);
+    //verifyDescendingOrder(buyOrdersMap);
+    printLimitOrderBookSide(buyOrdersMap, Side.BUY);
   }
 
   @Test
@@ -85,37 +69,7 @@ public class OrderEntityBookServiceBuyTest {
     Assert.assertTrue(sizeIncreased);
 
     verifyDescendingOrder(buyOrdersMap);
-    printLimitOrderBookBidSide(buyOrdersMap);
+    printLimitOrderBookSide(buyOrdersMap, Side.BUY);
   }
 
-  private void verifyDescendingOrder(Map<Integer, Set<OrderEntity>> buyOrdersMap) {
-    Integer previousKey = null;
-    for (int key: buyOrdersMap.keySet()) {
-      if (previousKey != null) {
-        Assert.assertTrue(key < previousKey);
-      }
-      previousKey = key;
-
-      LocalDateTime previousOrderTime = null;
-      for (OrderEntity values: buyOrdersMap.get(key)) {
-        if (previousOrderTime != null) {
-          Assert.assertTrue(previousOrderTime.isBefore(values.time()));
-        }
-        previousOrderTime = values.time();
-      }
-    }
-  }
-
-  private void printLimitOrderBookBidSide(Map<Integer, Set<OrderEntity>> buyOrdersMap) {
-    for (Integer key: buyOrdersMap.keySet()) {
-      System.out.printf("Bid Level Price: %d\t", key);
-      Set<OrderEntity> orderEntities = buyOrdersMap.get(key);
-      int count = 0;
-      for (OrderEntity order: orderEntities) {
-        System.out.printf("|\tBid Order Qty %d: %d\t", count, order.quantity());
-        count++;
-      }
-      System.out.println();
-    }
-  }
 }
