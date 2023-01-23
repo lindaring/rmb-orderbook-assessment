@@ -80,6 +80,14 @@ public class OrderEntityBookServiceSellTest {
     printLimitOrderBookAskSide(sellOrdersMap);
   }
 
+  @Test
+  public void SELL_ORDER_MAP_MODIFY_ORDER_TEST() {
+    Map<Integer, Set<OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
+    orderBookService.modifyOrder(109L, Side.SELL, 10);
+    verifyAscendingOrder(sellOrdersMap);
+    printLimitOrderBookAskSide(sellOrdersMap);
+  }
+
   private void verifyAscendingOrder(Map<Integer, Set<OrderEntity>> sellOrdersMap) {
     Integer previousKey = null;
     for (int key: sellOrdersMap.keySet()) {

@@ -85,9 +85,8 @@ public class OrderBookService {
     orderBookSide.put(order.price(), sideSet);
   }
 
-  // TODO: Work in progress...for part 2
   public void modifyOrder(long id, Side side, int quantity) {
-    OrderEntity previousOrder = cancelOrder(id, Side.BUY);
+    OrderEntity previousOrder = cancelOrder(id, side);
     if (previousOrder != null) {
       addOrder(new OrderEntity(orderRepository.nextSequence(), previousOrder.price(), quantity, side, LocalDateTime.now()));
     }
