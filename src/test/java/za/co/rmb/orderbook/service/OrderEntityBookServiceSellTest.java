@@ -8,8 +8,9 @@ import za.co.rmb.orderbook.enumerator.Side;
 import za.co.rmb.orderbook.model.OrderBook;
 import za.co.rmb.orderbook.repository.OrderRepository;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 
 public class OrderEntityBookServiceSellTest {
 
@@ -28,7 +29,7 @@ public class OrderEntityBookServiceSellTest {
 
   @Test
   public void SELL_ORDER_MAP_IN_ASCENDING_ORDER_TEST() {
-    Map<Integer, Map<Long, OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
+    Map<Integer, Set<OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
     Assert.assertNotNull(sellOrdersMap);
 
     verifyAscendingOrder(sellOrdersMap);
@@ -37,7 +38,7 @@ public class OrderEntityBookServiceSellTest {
 
   @Test
   public void SELL_ORDER_MAP_IN_ASCENDING_ORDER_AFTER_FIRST_ENTRY_REMOVED_TEST() {
-    Map<Integer, Map<Long, OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
+    Map<Integer, Set<OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
 
     Integer firstKey = sellOrdersMap.keySet().stream().findFirst().orElse(null);
     Assert.assertNotNull(firstKey);
@@ -50,24 +51,26 @@ public class OrderEntityBookServiceSellTest {
 
   @Test
   public void SELL_ORDER_MAP_CANCEL_ORDER_TEST() {
-    int initialMapSize = orderBookService.getOrderBook().sellOrdersMap().size();
+    Map<Integer, Set<OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
+    int initialMapSize = sellOrdersMap.size();
 
     orderBookService.cancelOrder(109L, Side.SELL);
     orderBookService.cancelOrder(111L, Side.SELL);
-    int newMapSize = orderBookService.getOrderBook().sellOrdersMap().size();
+    int newMapSize = sellOrdersMap.size();
 
     boolean sizeDecreased = initialMapSize - newMapSize == 1;
     Assert.assertTrue(sizeDecreased);
+    printLimitOrderBookAskSide(sellOrdersMap);
   }
 
   @Test
   public void SELL_ORDER_MAP_INCREASED_AND_IN_ASCENDING_ORDER_AFTER_NEW_ENTRY_ADDED_TEST() {
-    Map<Integer, Map<Long, OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
+    Map<Integer, Set<OrderEntity>> sellOrdersMap = orderBookService.getOrderBook().sellOrdersMap();
     int initialMapSize = sellOrdersMap.size();
 
     OrderEntity newSellOrder = new OrderEntity(orderRepository.nextSequence(), 31, 44, Side.SELL,
-        LocalTime.of(20, 2, 24));
-    orderBookService.addOrder(Side.SELL, newSellOrder);
+        LocalDateTime.of(2023, 1, 20, 20, 2, 24));
+    orderBookService.addOrder(newSellOrder);
     int newMapSize = sellOrdersMap.size();
 
     boolean sizeIncreased = newMapSize - initialMapSize == 1;
@@ -77,22 +80,30 @@ public class OrderEntityBookServiceSellTest {
     printLimitOrderBookAskSide(sellOrdersMap);
   }
 
-  private void verifyAscendingOrder(Map<Integer, Map<Long, OrderEntity>> sellOrdersMap) {
+  private void verifyAscendingOrder(Map<Integer, Set<OrderEntity>> sellOrdersMap) {
     Integer previousKey = null;
     for (int key: sellOrdersMap.keySet()) {
       if (previousKey != null) {
         Assert.assertTrue(key > previousKey);
       }
       previousKey = key;
+
+      LocalDateTime previousOrderTime = null;
+      for (OrderEntity values: sellOrdersMap.get(key)) {
+        if (previousOrderTime != null) {
+          Assert.assertTrue(previousOrderTime.isBefore(values.time()));
+        }
+        previousOrderTime = values.time();
+      }
     }
   }
 
-  private void printLimitOrderBookAskSide(Map<Integer, Map<Long, OrderEntity>> sellOrdersMap) {
+  private void printLimitOrderBookAskSide(Map<Integer, Set<OrderEntity>> sellOrdersMap) {
     for (Integer key: sellOrdersMap.keySet()) {
       System.out.printf("Ask Level Price: %d\t", key);
-      Map<Long, OrderEntity> orderEntities = sellOrdersMap.get(key);
+      Set<OrderEntity> orderEntities = sellOrdersMap.get(key);
       int count = 0;
-      for (OrderEntity order: orderEntities.values()) {
+      for (OrderEntity order: orderEntities) {
         System.out.printf("|\tAsk Order Qty %d: %d\t", count, order.quantity());
         count++;
       }

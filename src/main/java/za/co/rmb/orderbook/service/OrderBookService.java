@@ -5,6 +5,7 @@ import za.co.rmb.orderbook.entity.OrderEntity;
 import za.co.rmb.orderbook.model.OrderBook;
 import za.co.rmb.orderbook.repository.OrderRepository;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class OrderBookService {
@@ -20,20 +21,20 @@ public class OrderBookService {
     // Note comment in the getOrdersFromDatabase method
     Set<OrderEntity> ordersFromDatabase = orderRepository.getOrdersFromDatabase();
 
-    Map<Integer, Map<Long, OrderEntity>> buySide = initSide(ordersFromDatabase, Side.BUY);
-    Map<Integer, Map<Long, OrderEntity>> sellSide = initSide(ordersFromDatabase, Side.SELL);
+    Map<Integer, Set<OrderEntity>> buySide = initSide(ordersFromDatabase, Side.BUY);
+    Map<Integer, Set<OrderEntity>> sellSide = initSide(ordersFromDatabase, Side.SELL);
 
     this.orderBook = new OrderBook(buySide, sellSide);
   }
 
-  private Map<Integer, Map<Long, OrderEntity>> initSide(Set<OrderEntity> allOrders, Side sideType) {
+  private Map<Integer, Set<OrderEntity>> initSide(Set<OrderEntity> allOrders, Side sideType) {
     /*
       1. Using a Map inorder to group orders per price level (as illustrated in the example limit order book table).
       2. Using TreeMap to maintain ascending/descending order based on price level. Sell side maintains ascending order
          and buy side maintains descending order based on price level.
       3. Basic operation of TreeMap (containsKey, get, put and remove) at log(n) time cost.
     */
-    Map<Integer, Map<Long, OrderEntity>> oderBookSide = (sideType == Side.BUY) ?
+    Map<Integer, Set<OrderEntity>> oderBookSide = (sideType == Side.BUY) ?
         new TreeMap<>(Collections.reverseOrder()) :
         new TreeMap<>();
 
@@ -45,7 +46,7 @@ public class OrderBookService {
     allOrders.stream()
         .filter(order -> order != null && order.side() == sideType)
         .forEach(order -> {
-          Map<Long, OrderEntity> sideMap = oderBookSide.get(order.price());
+          Set<OrderEntity> sideMap = oderBookSide.get(order.price());
           if (sideMap == null) {
               /*
                 Using TreeMap because we need to maintain ascending order in terms of time (time order was placed) and also
@@ -56,57 +57,64 @@ public class OrderBookService {
                 not necessarily maintain ascending order for all nodes in the heap/tree based on a condition.
                 TreeSet provides guaranteed log(n) time cost for the basic operations (add, remove and contains).
               */
-            sideMap = new TreeMap<>();
+            sideMap = new TreeSet<>();
           }
-          sideMap.put(order.id(), order);
+          sideMap.add(order);
           oderBookSide.put(order.price(), sideMap);
         });
 
     return oderBookSide;
   }
 
-  public void addOrder(Side side, OrderEntity order) {
+  public void addOrder(OrderEntity order) {
     if (this.orderBook == null) {
       return;
     }
 
-    Map<Integer, Map<Long, OrderEntity>> orderBookSide = (side == Side.BUY) ?
+    Map<Integer, Set<OrderEntity>> orderBookSide = (order.side() == Side.BUY) ?
         this.orderBook.buyOrdersMap() :
         this.orderBook.sellOrdersMap();
 
-    Map<Long, OrderEntity> sideMap = orderBookSide.get(order.price());
-    if (sideMap == null) {
+    Set<OrderEntity> sideSet = orderBookSide.get(order.price());
+    if (sideSet == null) {
       // See line 51-57
-      sideMap = new TreeMap<>();
+      sideSet = new TreeSet<>();
     }
 
-    sideMap.put(order.id(), order);
-    orderBookSide.put(order.price(), sideMap);
+    sideSet.add(order);
+    orderBookSide.put(order.price(), sideSet);
   }
 
   // TODO: Work in progress...for part 2
   public void modifyOrder(long id, Side side, int quantity) {
+    OrderEntity previousOrder = cancelOrder(id, Side.BUY);
+    if (previousOrder != null) {
+      addOrder(new OrderEntity(orderRepository.nextSequence(), previousOrder.price(), quantity, side, LocalDateTime.now()));
+    }
   }
 
-  public void cancelOrder(long id, Side side) {
+  public OrderEntity cancelOrder(long id, Side side) {
     if (this.orderBook == null) {
-      return;
+      return null;
     }
 
-    Map<Integer, Map<Long, OrderEntity>> orderBookSide = (side == Side.BUY) ?
+    Map<Integer, Set<OrderEntity>> orderBookSide = (side == Side.BUY) ?
         this.orderBook.buyOrdersMap() :
         this.orderBook.sellOrdersMap();
 
     for (Integer priceKey: orderBookSide.keySet()) {
-      Map<Long, OrderEntity> priceValueMap = orderBookSide.get(priceKey);
-      if (priceValueMap.containsKey(id)) {
-        priceValueMap.remove(id);
-        if (priceValueMap.isEmpty()) {
-          orderBookSide.remove(priceKey);
+      Set<OrderEntity> priceSet = orderBookSide.get(priceKey);
+      for (OrderEntity order: priceSet) {
+        if (order.id() == id) {
+          priceSet.remove(order);
+          if (priceSet.isEmpty()) {
+            orderBookSide.remove(priceKey);
+          }
+          return order;
         }
-        return;
       }
     }
+    return null;
   }
 
   public OrderBook getOrderBook() {
